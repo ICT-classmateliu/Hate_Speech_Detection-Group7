@@ -1,7 +1,5 @@
-# Hate_Speech_Detection-Group7
-
 <div align="center">
-<a href="https://github.com/tiny-craft/tiny-rdm/"><img src="build/appicon.png" width="120"/></a>
+<img src="image/logo_image.jpg" width="120"/>
 </div>
 <h1 align="center">Tiny RDM</h1>
 <h4 align="center"><strong><a href="/">English</a></strong> | 简体中文 | <a href="https://github.com/tiny-craft/tiny-rdm/blob/main/README_ja.md">日本語</a></h4>
