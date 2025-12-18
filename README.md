@@ -33,3 +33,22 @@
 ## 相关功能 ##
 
 ## 关于 ##
+在运行此项目之前，需要安装以下库以及软件包:
+- HanLp（需要自己申请API以提高调用次数）
+<br/>官方Github：https://github.com/hankcs/HanLP
+<br/>RESTful API申请：https://bbs.hanlp.com/t/hanlp2-1-restful-api/53
+- NLTK
+<br/>教程：https://book.itheima.net/course/221/1270308811000782849/1271374274807996418
+- sklearn
+<br/>教程：https://www.runoob.com/sklearn/sklearn-install.html
+- stanfordcorenlp（配置版本出现问题 此处暂不涉及）
+- pandas
+<br/>教程：http://runoob.com/pandas/pandas-install.html
+- numpy
+<br/>教程：https://www.runoob.com/numpy/numpy-install.html
+- mlxtend.classifier
+<br/>教程：https://rasbt.github.io/mlxtend/installation/
+- re
+<br/>使用说明：https://blog.csdn.net/shadowtalon/article/details/139107806
+- string
+- json
