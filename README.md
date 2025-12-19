@@ -43,6 +43,7 @@
 <br/>教程：https://www.runoob.com/sklearn/sklearn-install.html
 - pandas
 <br/>教程：http://runoob.com/pandas/pandas-install.html
+- PyTorch
 - numpy
 <br/>教程：https://www.runoob.com/numpy/numpy-install.html
 - mlxtend.classifier
@@ -63,7 +64,7 @@
 <br/>与负面观点/情绪相关的词汇表。来自 https://github.com/jeffreybreen/twitter-sentiment-analysis-tutorial-201107/tree/master/data/opinion-lexicon-English
 
 ## 数据集 ##
-本数据集来自发表的论文：《自动化仇恨言论检测与冒犯性语言问题》（“Automated Hate Speech Detection and the Problem of Offensive Language”）收录于 ICWSM
+英文数据集存储在 `initial_dataset_en` 文件夹中，数据集来自发表的论文：《自动化仇恨言论检测与冒犯性语言问题》（“Automated Hate Speech Detection and the Problem of Offensive Language”）收录于 ICWSM
  - 内部包含一个开源的数据集，数据集包含 24,784 条推文，推文由 CrowdFlower 用户手动标记为 `hate_speech`、`offensive_language` 或 `neither`
  - __数据集定义__
 <br/> `index` 推文的唯一标识符
@@ -74,6 +75,9 @@
 <br/> `class` CrowdFlower 用户给出的多数标签（0 代表仇恨言论，1 代表冒犯性语言，2 代表两者都不是）
 <br/> `tweet` 推文（文本形式）
 <br/> `clean_tweet` 去除标点符号并转换为小写后的推文文本
+
+中文数据集存储在 `initial_dataset_cn` 文件夹中，数据集来自发表的论文：基于RoBERTa的中文仇恨言论侦测方法研究，收录于CCL 2023
+ - 数据集中包含了17430条标注好的句子，覆盖种族，性别，地域等主题。其中，label 0 代表安全，label 1 代表仇恨言论
 
 ## 特征数据集生成脚本 ##
 项目中使用四种特征空间，包括 TF-IDF（加权得分和矩阵）、N-gram（字符级和词级）、类型依存关系和情感得分。每种特征空间都需要使用不同的文本语料库预处理脚本，具体如下：
@@ -87,4 +91,5 @@
 ## 引用来源 ##
 - 实现方案参考及README编写 https://github.com/aman-saha/hate-speech-detection/tree/master
 - 词典 https://github.com/SunYanCN/hate-speech-and-offensive-language/tree/master/lexicons
-- 数据集 https://github.com/t-davidson/hate-speech-and-offensive-language
+- 英文数据集 https://github.com/t-davidson/hate-speech-and-offensive-language
+- 中文数据集 https://github.com/RXJ588/CHSD/tree/main

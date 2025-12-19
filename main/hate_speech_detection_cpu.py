@@ -31,7 +31,6 @@ master.columns.values
 y=master.iloc[:,2] #class labels
 X=master.iloc[:,3:] #all features
 
-
 #create train and test sets: 80% train, 20% test
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
@@ -48,7 +47,20 @@ from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.ensemble import AdaBoostClassifier
 from xgboost import XGBClassifier
-import lightgbm as lgb
+
+# 检查 GPU 是否可用，如果可用则使用 GPU 加速 XGBoost
+try:
+    import subprocess
+    result = subprocess.run(['nvidia-smi'], capture_output=True, text=True, timeout=5)
+    if result.returncode == 0:
+        USE_GPU = True
+        print("检测到 NVIDIA GPU,XGBoost 将使用 GPU 加速")
+    else:
+        USE_GPU = False
+        print("未检测到 NVIDIA GPU,XGBoost 将使用 CPU")
+except:
+    USE_GPU = False
+    print("无法检测 GPU,XGBoost 将使用 CPU")
 
 #Create a base training set to benchmark our performance (train set with hatespeech dictionary weighted tif-df score as only feature)
 x_base = pd.DataFrame(X_train.loc[:,'weighted_TFIDF_scores'])
@@ -64,7 +76,11 @@ X_test_scale = scaler.transform(X_test)
 #initialize models（对易受特征尺度影响的模型增加迭代次数）
 lr = LogisticRegression(solver='lbfgs', max_iter=500)
 gb = GradientBoostingClassifier(n_estimators=500, learning_rate=.025)
-xgb = XGBClassifier(learning_rate=.025, max_depth=6)
+# XGBoost 配置：如果检测到 GPU 则使用 GPU 加速
+if USE_GPU:
+    xgb = XGBClassifier(learning_rate=.025, max_depth=6, tree_method='gpu_hist', device='cuda')
+else:
+    xgb = XGBClassifier(learning_rate=.025, max_depth=6)
 mlp = MLPClassifier(
     solver='lbfgs',
     hidden_layer_sizes=(80, 40, 40, 10),
@@ -77,12 +93,12 @@ mlp = MLPClassifier(
 rf= RandomForestClassifier(n_estimators=100, max_features=500)
 # 80,50,50,20
 
-#asses model performances using 5-fold cross validation and f1-score micro aveage as metric
-print("baseline model f1-score = ", cross_val_score(lr,x_base, y_train,cv=5,scoring="f1_micro").mean()) #benchmark model: linear regression using just tfidf score (weighted with hate dict)
-print("gb cross validation f1-score = ", cross_val_score(gb,x_base, y_train,cv=5,scoring="f1_micro").mean()) #gradient boost with just tf-df score
-print("rf cross validation f1-score = ", cross_val_score(rf,X_train,y_train,cv=5,scoring="f1_micro").mean()) #random forest with full train set (all features)
-print("xgb cross validation f1-score = ", cross_val_score(xgb,X_train,y_train,cv=5,scoring="f1_micro").mean()) #xgboost with full train set (all features)
-print("mlp cross validation f1-score = ", cross_val_score(mlp,X_train_scale,y_train,cv=5,scoring="f1_micro").mean())
+#asses model performances using 3-fold cross validation and f1-score micro aveage as metric (CPU版本用3折加快速度)
+print("baseline model f1-score = ", cross_val_score(lr,x_base, y_train,cv=3,scoring="f1_micro").mean()) #benchmark model: linear regression using just tfidf score (weighted with hate dict)
+print("gb cross validation f1-score = ", cross_val_score(gb,x_base, y_train,cv=3,scoring="f1_micro").mean()) #gradient boost with just tf-df score
+print("rf cross validation f1-score = ", cross_val_score(rf,X_train,y_train,cv=3,scoring="f1_micro").mean()) #random forest with full train set (all features)
+print("xgb cross validation f1-score = ", cross_val_score(xgb,X_train,y_train,cv=3,scoring="f1_micro").mean()) #xgboost with full train set (all features)
+print("mlp cross validation f1-score = ", cross_val_score(mlp,X_train_scale,y_train,cv=3,scoring="f1_micro").mean())
 
 #initialize ensembles
 estimators=[]
