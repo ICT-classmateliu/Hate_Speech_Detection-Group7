@@ -61,20 +61,28 @@ scaler.fit(X_train)
 X_train_scale = scaler.transform(X_train)
 X_test_scale = scaler.transform(X_test)
 
-#initialize models
-lr = LogisticRegression(solver='lbfgs')
+#initialize models（对易受特征尺度影响的模型增加迭代次数）
+lr = LogisticRegression(solver='lbfgs', max_iter=500)
 gb = GradientBoostingClassifier(n_estimators=500, learning_rate=.025)
-xgb = XGBClassifier(learning_rate=.025, max_features=100)
-mlp = MLPClassifier(solver='lbfgs',hidden_layer_sizes=(80,40,40,10), activation='relu', random_state=1,learning_rate='adaptive', alpha=1e-6)
+xgb = XGBClassifier(learning_rate=.025, max_depth=6)
+mlp = MLPClassifier(
+    solver='lbfgs',
+    hidden_layer_sizes=(80, 40, 40, 10),
+    activation='relu',
+    random_state=1,
+    learning_rate='adaptive',
+    alpha=1e-6,
+    max_iter=500
+)
 rf= RandomForestClassifier(n_estimators=100, max_features=500)
 # 80,50,50,20
 
 #asses model performances using 5-fold cross validation and f1-score micro aveage as metric
-print("baseline model f1-score = ", cross_val_score(lr,x_base, y_train,cv=5,scoring="roc_auc").mean()) #benchmark model: linear regression using just tfidf score (weighted with hate dict)
+print("baseline model f1-score = ", cross_val_score(lr,x_base, y_train,cv=5,scoring="f1_micro").mean()) #benchmark model: linear regression using just tfidf score (weighted with hate dict)
 print("gb cross validation f1-score = ", cross_val_score(gb,x_base, y_train,cv=5,scoring="f1_micro").mean()) #gradient boost with just tf-df score
 print("rf cross validation f1-score = ", cross_val_score(rf,X_train,y_train,cv=5,scoring="f1_micro").mean()) #random forest with full train set (all features)
 print("xgb cross validation f1-score = ", cross_val_score(xgb,X_train,y_train,cv=5,scoring="f1_micro").mean()) #xgboost with full train set (all features)
-print("mlp cross validation f1-score = ", cross_val_score(mlp,X_train,y_train,cv=5,scoring="f1_micro").mean())
+print("mlp cross validation f1-score = ", cross_val_score(mlp,X_train_scale,y_train,cv=5,scoring="f1_micro").mean())
 
 #initialize ensembles
 estimators=[]
@@ -104,7 +112,7 @@ from sklearn.preprocessing import label_binarize
 import matplotlib.pyplot as plt
 from itertools import cycle
 from sklearn.multiclass import OneVsRestClassifier
-from scipy import interp
+from numpy import interp
 # Binarize the output
 y = label_binarize(y, classes=[0, 1, 2])
 n_classes = y.shape[1]
@@ -115,7 +123,8 @@ classifier = OneVsRestClassifier(lr)
 classifier2= OneVsRestClassifier(gb)
 classifier3 = OneVsRestClassifier(xgb)
 y_score = classifier.fit(x_base, y_train).decision_function(x_base_test)
-y_score2= classifier.fit(X_train, y_train).decision_function(X_test)
+classifier_lr = OneVsRestClassifier(lr)
+y_score2= classifier_lr.fit(X_train, y_train).decision_function(X_test)
 y_score3= classifier2.fit(X_train, y_train).decision_function(X_test)
 # Compute ROC curve and ROC area for each class
 fpr = dict()
@@ -140,7 +149,7 @@ fpr["micro"], tpr["micro"], _ = roc_curve(y_test.ravel(), y_score.ravel())
 roc_auc["micro"] = auc(fpr["micro"], tpr["micro"])
 fpr2["micro"], tpr2["micro"], _ = roc_curve(y_test.ravel(), y_score2.ravel())
 roc_auc2["micro"] = auc(fpr2["micro"], tpr2["micro"])
-fpr3["micro"], tpr3["micro"], _ = roc_curve(y_test.ravel(), y_score2.ravel())
+fpr3["micro"], tpr3["micro"], _ = roc_curve(y_test.ravel(), y_score3.ravel())
 roc_auc3["micro"] = auc(fpr3["micro"], tpr3["micro"])
 
 # Compute macro-average ROC curve and ROC area
