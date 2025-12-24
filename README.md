@@ -4,7 +4,7 @@
 <div align="center">
 <img src="image/logo_image.png" width="120"/>
 </div>
-<h1 align="center">基于HanLP的仇恨言论检测</h1>
+<h1 align="center">仇恨言论检测</h1>
 
 <!-- 这里对应中英文切换部分 -->
 <h4 align="center">
@@ -21,7 +21,7 @@
 责任：作者不对使用后造成的问题负责。 -->
 
 <!-- 小标题部分 -->
-<strong>@Classmateliu 采用 Python 开发，基于 HanLP 工具包实现</strong>
+<strong>@Classmateliu 采用 Python 开发，基于若干工具包实现</strong>
 </div>
 
 ## 项目概述 ##
@@ -33,6 +33,18 @@
 <br/>__注意:__ 
 
 ## 相关功能 ##
+运行主文件存放在 main 文件夹中，文件名为 `hate_speech_detection_gpu` ，训练使用GPU（PyTorch，XGBoost）以及CPU（sklearn），总训练时长约为 20-30min，内部模型如下表：
+
+| 模型 | 输入特征 | 框架/库 | GPU 加速 | 用途 | 训练方式 | 评价指标 |
+| --- | --- | ---: | ---: | --- | --- | --- |
+| 基准模型 (Baseline MLP) | 加权 TF-IDF (`weighted_TFIDF_scores`) | PyTorch | 可选（小模型不必要） | 作为最简单的参考模型 | 5 折交叉验证 | F1-score, Accuracy, Precision (macro), Recall (macro) |
+| Gradient Boosting (GB) | 加权 TF-IDF | scikit-learn | CPU | 参考模型 | 3 折交叉验证 | F1-score, Accuracy, Precision (micro), Recall (micro) |
+| Random Forest (RF) | 完整特征 | scikit-learn | CPU | 参考模型 | 3 折交叉验证 | F1-score, Accuracy, Precision (micro), Recall (micro) |
+| XGBoost | 完整特征 | XGBoost | 可选 GPU | 参考模型 / 集成 | 3 或 5 折交叉验证（视是否使用 GPU） | F1-score, Accuracy, Precision (micro), Recall (micro) |
+| PyTorch MLP (完整特征) | 完整特征 | PyTorch | GPU | 主要模型 | 5 折交叉验证 + 最终训练 | F1-score, Accuracy, Precision (micro), Recall (micro), ROC/AUC |
+| scikit-learn MLPClassifier | 完整特征 | scikit-learn | CPU | 集成学习子模型 | 最终训练 | 参与 Voting/Stacking 集成 |
+| Voting 集成 | 完整特征 | scikit-learn | CPU | 集成学习 | MLP + RF + XGBoost（soft voting） | F1-score, Accuracy, Precision, Recall |
+| Stacking 集成 | 完整特征 | mlxtend | CPU | 集成学习 | MLP + RF + XGBoost，LogisticRegression 作为 meta-classifier | F1-score, Accuracy, Precision, Recall |
 
 ## 使用说明 ##
 在运行此项目之前，需要安装以下库以及软件包:
@@ -46,6 +58,7 @@
 - pandas
 <br/>教程：http://runoob.com/pandas/pandas-install.html
 - PyTorch
+- XGBoost
 - numpy
 <br/>教程：https://www.runoob.com/numpy/numpy-install.html
 - mlxtend.classifier
@@ -82,13 +95,13 @@
  - 数据集中包含了17430条标注好的句子，覆盖种族，性别，地域等主题。其中，label 0 代表安全，label 1 代表仇恨言论
 
 ## 特征数据集生成脚本 ##
-项目中使用四种特征空间，包括 TF-IDF（加权得分和矩阵）、N-gram（字符级和词级）、类型依存关系和情感得分。每种特征空间都需要使用不同的文本语料库预处理脚本，具体如下：
-- `clean_tweets.py` 对初始数据集执行常规预处理步骤，包括去除标点符号和将所有字符转换为小写
-- `stanford_nlp.py` 使用斯坦福解析器的类型依存关系工具保留推文中的词语结构，该工具可以识别句子中词语之间的句法关系。此脚本在数据集上运行斯坦福解析器，并将每条推文的类型依存关系以字典的形式返回（每个键代表推文索引，每个值是该推文的类型依存关系列表）。然后，该字典以 .json 文件 dependency_dict.json 的形式输出
-- `dependency_features.py` 读取包含类型化依赖关系的 .json 文件，并创建基于依赖关系的特征。斯坦福解析器识别出的每条推文之间的关系产生了 41 个特征，每个特征存储了每种不同类型依赖关系的计数
-- `ngram_features.py` 使用计数向量化器在词级和字符级创建二元语法特征。计数向量化器也用于创建 TF-IDF 矩阵。对于 TF-IDF、词级二元语法和字符级二元语法，停用词被移除，剩余的词干被提取。随后，对于词级二元语法和 TF-IDF，符号被移除，以确保像“#Selfie”这样的词与“Selfie”的计数相同。然而，数字并未从文本中移除，以保留 Unicode 形式的表情符号作为词。另一方面，对于字符级二元语法，符号被保留在文本中，以捕捉通常用于审查脏话（例如“b*tch”或“a$$hole”）的印刷符号。在构建字符级二元语法时，数字被移除，因为 Unicode 表示在字符级上没有价值
-- `sentiment_scores.py` 统计每条推文中出现在仇恨词汇库、负面词汇库和正面词汇库中的词汇数量。由于一些包含负面词汇的推文也可能表达正面含义（例如“真tm棒”），因此添加了正面词汇库以进行更全面的情感分析。此外，情感得分（即正面和负面词频的归一化）的计算方法是将推文长度除以词频，其依据是：在负面/正面词汇频率相同的情况下，较短的推文比较长的推文表达更强烈的情感
-- `tf-idf.py` TF-IDF分数是基于词频和逆文档频率计算得出的，作为基线模型中唯一包含的特征集。对于每条推文，计算每个词的 TF-IDF 值，如果该词出现在仇恨词汇库中，则赋予其权重 1，否则赋予权重 0。权重设置为 1 和 0 是因为我们只关注出现在词汇库中的词。然后，将所有 TF-IDF 值乘以其对应的权重，并将结果相加，得到每条推文的 TF-IDF 分数
+项目中使用四种特征空间，包括 TF-IDF（加权得分和矩阵）、N-gram（字符级和词级）、类型依存关系和情感得分。每种特征空间都需要使用不同的文本语料库预处理脚本
+- `clean_tweets.py` 
+- `stanford_nlp.py` 
+- `dependency_features.py` 
+- `ngram_features.py` 
+- `sentiment_scores.py` 
+- `tf-idf.py` 
 
 ## 引用来源 ##
 - 实现方案参考及README编写 https://github.com/aman-saha/hate-speech-detection/tree/master

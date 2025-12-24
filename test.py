@@ -5,7 +5,7 @@
 import nltk
 
 from hanlp_restful import HanLPClient
-HanLP = HanLPClient('https://www.hanlp.com/api', auth='OTcxN0BiYnMuaGFubHAuY29tOjBLSVpEN05JQ2ZYSG02cnk=', language='zh') 
+# HanLP = HanLPClient('https://www.hanlp.com/api', auth='OTcxN0BiYnMuaGFubHAuY29tOjBLSVpEN05JQ2ZYSG02cnk=', language='zh') 
 # auth不填则匿名，zh中文，mul多语种
 
 import sklearn

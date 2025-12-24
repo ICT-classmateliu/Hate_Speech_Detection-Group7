@@ -658,6 +658,17 @@ roc_auc2["micro"] = auc(fpr2["micro"], tpr2["micro"])
 # 横轴：模型误把负样本预测成正样本的比例（越低越好）
 # 纵轴：模型正确预测正样本的比例（越高越好）
 # Micro-average ROC：在多分类中把所有样本当作一个整体来计算 ROC，用于衡量模型整体分类性能
+# 解决 matplotlib 中文字体显示为方框的问题：优先使用系统常见中文字体（Windows 常见为 Microsoft YaHei / SimHei）
+import matplotlib.font_manager as fm
+font_candidates = ['Microsoft YaHei', 'SimHei', 'Noto Sans CJK SC', 'Arial Unicode MS']
+available_fonts = [f.name for f in fm.fontManager.ttflist]
+for fname in font_candidates:
+    if fname in available_fonts:
+        plt.rcParams['font.sans-serif'] = [fname]
+        plt.rcParams['font.family'] = 'sans-serif'
+        break
+# 解决坐标轴负号显示为方块的问题
+plt.rcParams['axes.unicode_minus'] = False
 plt.figure(figsize=(10, 8))
 # 绘制基准模型（逻辑回归）的 micro-average ROC，颜色：橙色
 line_base, = plt.plot(fpr["micro"], tpr["micro"],
