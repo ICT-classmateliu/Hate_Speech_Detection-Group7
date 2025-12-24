@@ -12,9 +12,9 @@
 </h4>
 <div align="center">
 
-<!-- 这里对应小徽章部分 -->
-[![License](https://img.shields.io/github/license/ICT-classmateliu/Hate_Speech_Detection-Group7)](https://github.com/ICT-classmateliu/Hate_Speech_Detection-Group7/blob/main/LICENSE)
-[![GitHub release](https://img.shields.io/github/release/ICT-classmateliu/Hate_Speech_Detection-Group7)](https://github.com/ICT-classmateliu/Hate_Speech_Detection-Group7/releases)
+<!-- 这里对应小徽章部分（使用不依赖仓库可见性的静态徽章以避免 "repo not found"） -->
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Release](https://img.shields.io/badge/Release-v5.0.2-blue.svg)](https://github.com/ICT-classmateliu/Hate_Speech_Detection-Group7/releases)
 <!-- MIT License
 别人：可以自由使用、修改、再发布、商用。
 要求：保留原作者版权声明和许可证文本。

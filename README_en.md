@@ -13,8 +13,8 @@
 <div align="center">
 
 <!-- Badges -->
-[![License](https://img.shields.io/github/license/ICT-classmateliu/Hate_Speech_Detection-Group7)](https://github.com/ICT-classmateliu/Hate_Speech_Detection-Group7/blob/main/LICENSE)
-[![GitHub release](https://img.shields.io/github/release/ICT-classmateliu/Hate_Speech_Detection-Group7)](https://github.com/ICT-classmateliu/Hate_Speech_Detection-Group7/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Release](https://img.shields.io/badge/Release-v5.0.2-blue.svg)](https://github.com/ICT-classmateliu/Hate_Speech_Detection-Group7/releases)
 <!-- MIT License
 Permissions: free to use, modify, redistribute, and commercial use.
 Requirements: preserve original author copyright and license text.
