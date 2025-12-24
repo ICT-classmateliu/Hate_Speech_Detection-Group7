@@ -14,14 +14,14 @@
 
 <!-- 这里对应小徽章部分（使用不依赖仓库可见性的静态徽章以避免 "repo not found"） -->
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Release](https://img.shields.io/badge/Release-v5.0.2-blue.svg)](https://github.com/ICT-classmateliu/Hate_Speech_Detection-Group7/releases)
+[![Release](https://img.shields.io/badge/Release-v5.0.3-blue.svg)](https://github.com/ICT-classmateliu/Hate_Speech_Detection-Group7/releases)
 <!-- MIT License
 别人：可以自由使用、修改、再发布、商用。
 要求：保留原作者版权声明和许可证文本。
 责任：作者不对使用后造成的问题负责。 -->
 
 <!-- 小标题部分 -->
-<strong>@Classmateliu 采用 Python 开发，基于若干工具包实现</strong>
+<strong>@Classmateliu 采用 Python 开发，基于若干工具包实现，尚未更新完成</strong>
 </div>
 
 ## 项目概述 ##
