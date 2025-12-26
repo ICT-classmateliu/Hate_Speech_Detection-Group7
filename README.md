@@ -14,7 +14,7 @@
 
 <!-- 这里对应小徽章部分（使用不依赖仓库可见性的静态徽章以避免 "repo not found"） -->
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Release](https://img.shields.io/badge/Release-v5.0.3-blue.svg)](https://github.com/ICT-classmateliu/Hate_Speech_Detection-Group7/releases)
+[![Release](https://img.shields.io/badge/Release-v6.0.0-blue.svg)](https://github.com/ICT-classmateliu/Hate_Speech_Detection-Group7/releases)
 <!-- MIT License
 别人：可以自由使用、修改、再发布、商用。
 要求：保留原作者版权声明和许可证文本。
@@ -41,8 +41,8 @@
 | Gradient Boosting (GB) | 加权 TF-IDF | scikit-learn | CPU | 参考模型 | 3 折交叉验证 | F1-score, Accuracy, Precision (micro), Recall (micro) |
 | Random Forest (RF) | 完整特征 | scikit-learn | CPU | 参考模型 | 3 折交叉验证 | F1-score, Accuracy, Precision (micro), Recall (micro) |
 | XGBoost | 完整特征 | XGBoost | 可选 GPU | 参考模型 / 集成 | 3 或 5 折交叉验证（视是否使用 GPU） | F1-score, Accuracy, Precision (micro), Recall (micro) |
-| PyTorch MLP (完整特征) | 完整特征 | PyTorch | GPU | 主要模型 | 5 折交叉验证 + 最终训练 | F1-score, Accuracy, Precision (micro), Recall (micro), ROC/AUC |
-| scikit-learn MLPClassifier | 完整特征 | scikit-learn | CPU | 集成学习子模型 | 最终训练 | 参与 Voting/Stacking 集成 |
+| PyTorch MLP (完整特征) | 完整特征 | PyTorch | GPU | 主要模型 | 最终训练 | F1-score, Accuracy, Precision (micro), Recall (micro), ROC/AUC |
+ 
 | Voting 集成 | 完整特征 | scikit-learn | CPU | 集成学习 | MLP + RF + XGBoost（soft voting） | F1-score, Accuracy, Precision, Recall |
 | Stacking 集成 | 完整特征 | mlxtend | CPU | 集成学习 | MLP + RF + XGBoost，LogisticRegression 作为 meta-classifier | F1-score, Accuracy, Precision, Recall |
 

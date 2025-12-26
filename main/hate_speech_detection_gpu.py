@@ -1,6 +1,6 @@
 # 由 @Classmateliu 创建、编写及维护
 # PyTorch GPU 加速版本，训练时间约为20-30min
-# 最后修改日期：2025.12.24
+# 最后修改日期：2025.12.25
 
 import pandas as pd     # 读取/合并 CSV 特征表、处理表格数据
 import numpy as np      # 数值数组操作、矩阵拼接、计算 ROC/均值等

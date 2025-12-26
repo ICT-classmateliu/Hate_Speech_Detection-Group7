@@ -14,7 +14,7 @@
 
 <!-- Badges -->
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Release](https://img.shields.io/badge/Release-v5.0.3-blue.svg)](https://github.com/ICT-classmateliu/Hate_Speech_Detection-Group7/releases)
+[![Release](https://img.shields.io/badge/Release-v6.0.0-blue.svg)](https://github.com/ICT-classmateliu/Hate_Speech_Detection-Group7/releases)
 <!-- MIT License
 Permissions: free to use, modify, redistribute, and commercial use.
 Requirements: preserve original author copyright and license text.
@@ -41,8 +41,8 @@ The main script is located in the `main` folder and named `hate_speech_detection
 | Gradient Boosting (GB) | Weighted TF-IDF | scikit-learn | CPU | Reference model | 3-fold cross-validation | F1-score, Accuracy, Precision (micro), Recall (micro) |
 | Random Forest (RF) | Full features | scikit-learn | CPU | Reference model | 3-fold cross-validation | F1-score, Accuracy, Precision (micro), Recall (micro) |
 | XGBoost | Full features | XGBoost | Optional GPU | Reference model / ensemble | 3 or 5-fold cross-validation (depends on GPU usage) | F1-score, Accuracy, Precision (micro), Recall (micro) |
-| PyTorch MLP (full features) | Full features | PyTorch | GPU | Main model | 5-fold cross-validation + final training | F1-score, Accuracy, Precision (micro), Recall (micro), ROC/AUC |
-| scikit-learn MLPClassifier | Full features | scikit-learn | CPU | Ensemble sub-model | Final training | Used in Voting/Stacking ensemble |
+| PyTorch MLP (full features) | Full features | PyTorch | GPU | Main model | final training | F1-score, Accuracy, Precision (micro), Recall (micro), ROC/AUC |
+ 
 | Voting ensemble | Full features | scikit-learn | CPU | Ensemble learning | MLP + RF + XGBoost (soft voting) | F1-score, Accuracy, Precision, Recall |
 | Stacking ensemble | Full features | mlxtend | CPU | Ensemble learning | MLP + RF + XGBoost, LogisticRegression as meta-classifier | F1-score, Accuracy, Precision, Recall |
 
