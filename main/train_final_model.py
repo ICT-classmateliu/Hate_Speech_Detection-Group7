@@ -1,6 +1,6 @@
 # 由 @Classmateliu 创建、编写及维护
 # 仅训练最终版模型 PyTorch MLP (完整特征) 作为最终使用的模型
-# 最后修改日期：2025.12.25
+# 最后修改日期：2025.12.27
 
 import pandas as pd
 import numpy as np
@@ -12,6 +12,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from sklearn.utils.class_weight import compute_class_weight
+from sklearn.feature_extraction.text import TfidfVectorizer
 import os, joblib, json
 import warnings
 warnings.filterwarnings('ignore')
@@ -119,12 +120,10 @@ class MLPNet(nn.Module):
     def forward(self, x):
         return self.network(x)
 
-# 训练函数 (与gpu文件中的train_model函数保持一致)
+# 训练函数
 def train_model(model, train_loader, val_loader, epochs=100, lr=0.001):
     criterion = nn.CrossEntropyLoss() # 损失函数
     optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-6) # 优化器（Adam） L2 正则化
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=10)
-    optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-6)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=10)
 
     best_val_loss = float('inf')
@@ -186,19 +185,22 @@ def evaluate_model(model, data_loader):
 
     return np.array(all_preds), np.array(all_labels), np.array(all_probs)
 
-
 def train_and_save_final_model():
     print("\n开始训练最终模型，并保存必要的artifacts...")
 
-    # 创建训练和测试数据集 (与gpu文件中的代码完全一致)
+    # 创建训练和测试数据集
     train_dataset = FeatureDataset(X_train_scaled, y_train)
     test_dataset = FeatureDataset(X_test_scaled, y_test)
     train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
 
     # 计算类别权重（处理严重类别不平衡）
-    # 注意：虽然gpu文件中没有使用类别权重，但由于数据严重不平衡(13.42倍)，
-    # 我们需要类别权重来确保模型不会偏向多数类别(offensive_language)
+    # 但由于数据严重不平衡(13.42倍)，需要类别权重来确保模型不会偏向多数类别(offensive_language)
+    #     类别	       样本数
+    # hate_speech	   1140
+    # offensive	       15358
+    # neither	       3328
+    # 最多类 vs 最少类 ≈ 13.5 : 1
     class_weights = compute_class_weight(
         class_weight='balanced',
         classes=np.unique(y_train),
@@ -206,12 +208,13 @@ def train_and_save_final_model():
     )
     print(f"训练集类别分布: {np.bincount(y_train)}")
     print(f"计算得到的类别权重: {class_weights}")
-    print("注意: hate_speech权重最高，因为样本最少")
+    # print("注意: hate_speech权重最高，因为样本最少")
 
     # 初始化最终模型
     final_model = MLPNet(input_dim=X_train_scaled.shape[1], hidden_dims=[80, 40, 40, 10], num_classes=3).to(device)
+    print(f"开始训练模型...")
 
-    # 训练函数需要支持类别权重
+    # 定义一个支持类别权重的训练函数
     def train_model_with_weights(model, train_loader, val_loader, epochs=100, lr=0.001, class_weights=None):
         if class_weights is not None:
             class_weights = torch.FloatTensor(class_weights).to(device)
@@ -289,9 +292,49 @@ def train_and_save_final_model():
         pass
 
     # label_map.json 标签映射表 把模型输出转成可读类别
-    label_map = {"0": "hate_speech", "1": "offensive_language", "2": "neither"}
+    label_map = {"0": "仇恨言论", "1": "冒犯言论", "2": "正常言论"}
     with open(os.path.join(artifacts_dir, 'label_map.json'), 'w', encoding='utf-8') as f:
         json.dump(label_map, f, ensure_ascii=False, indent=2)
+
+    # 创建并保存 TfidfVectorizer (基于原始训练文本)
+    try:
+        # 从 labels.csv 中获取原始训练文本
+        labels_df = pd.read_csv('test_feature_dataset/labels.csv', encoding='utf-8')
+
+        # 提取训练文本（对应训练数据的索引）
+        train_indices = X_train_df.index.tolist()
+        train_texts = labels_df.iloc[train_indices]['tweet'].fillna('').tolist()
+
+        print(f"使用 {len(train_texts)} 个训练文本训练 TfidfVectorizer")
+
+        # 创建 TfidfVectorizer，使用与训练时相同的参数
+        tfidf_vectorizer = TfidfVectorizer(
+            max_features=555,  # 与训练特征匹配
+            lowercase=True,
+            token_pattern=r'\b\w+\b',
+            norm='l2',
+            use_idf=True,
+            smooth_idf=True,
+            sublinear_tf=False,
+            stop_words='english'  # 添加停用词过滤
+        )
+
+        # 使用真实的训练文本拟合 vectorizer
+        tfidf_vectorizer.fit(train_texts)
+
+        # 保存 vectorizer
+        joblib.dump(tfidf_vectorizer, os.path.join(artifacts_dir, 'tfidf_vectorizer.pkl'))
+        print(f"TfidfVectorizer 已保存 (词汇表大小: {len(tfidf_vectorizer.vocabulary_)})")
+    except Exception as e:
+        print(f"保存 TfidfVectorizer 失败: {e}")
+        # 如果保存失败，创建一个基本的 vectorizer
+        try:
+            basic_vectorizer = TfidfVectorizer(max_features=555, lowercase=True)
+            basic_vectorizer.fit(["sample text for basic initialization"] * 100)
+            joblib.dump(basic_vectorizer, os.path.join(artifacts_dir, 'tfidf_vectorizer.pkl'))
+            print("基础 TfidfVectorizer 已保存")
+        except Exception as e2:
+            print(f"保存基础 TfidfVectorizer 也失败: {e2}")
 
     # 在测试集上评估
     pred_original, y_true, y_probs = evaluate_model(final_model, test_loader)

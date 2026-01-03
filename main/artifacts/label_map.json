@@ -1,5 +1,5 @@
 {
-  "0": "hate_speech",
-  "1": "offensive_language",
-  "2": "neither"
+  "0": "仇恨言论",
+  "1": "冒犯言论",
+  "2": "正常言论"
 }
