@@ -899,13 +899,33 @@ with gr.Blocks() as demo:
     gr.Markdown("""
     ### 使用说明:
 
-    #### **测试示例**
-    - **仇恨言论**:
-      - "I hate niggers" ⚠️原因：包含强烈种族脏词
-      - "Kill every Muslim" ⚠️
-    - **冒犯语言**: "You are such an asshole"
-    - **正常文本**: "The weather is nice today"
-    - **性别歧视**: "Women should stay in the kitchen"
+    #### **🔑 测试示例**
+    - **仇恨言论(hate speech)**:
+      - "I hate niggers" (98.9%)
+      - "Kill every Muslim" (100%)
+      - "Exterminate all Jews" (99.9%)
+    - **冒犯言论(offensive speech)**: 
+      - 性别歧视："Women should stay in the kitchen" (100%)
+      - 种族侮辱："Niggers should die" (92.5%)
+      - 仇恨+群体："I hate all black people" (99.8%)
+      - 极端主义："Nazi party should rule" (100%)
+      - 一般冒犯："You are an idiot" (76.8%)
+    - **正常文本(normal speech)**: "The weather is nice today"
+      - 中性语句："Worst day ever" (100%)
+      - 温和表达："I love this beautiful day" (100%)
+
+    #### **🎯触发规则**
+    - **🔴 仇恨言论(hate speech)**:
+      - 强烈种族脏词: nigger, nigga, kike, coon, chink, gook, spic
+      - 仇恨动词 + 量化词: kill/hate/exterminate + all/every/each
+      - 灭绝词汇: exterminate, genocide, holocaust
+    - **🟡 冒犯言论(offensive speech)**:
+      - 性别歧视和刻板印象
+      - 一般种族侮辱词
+      - 冒犯性语言
+    - **🟢 正常文本(normal speech)**:
+      - 中性或正面语句
+      - 不含仇恨词汇的表达
     """)
 
 if __name__ == "__main__":
