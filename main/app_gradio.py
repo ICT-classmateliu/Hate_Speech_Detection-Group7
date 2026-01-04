@@ -806,6 +806,84 @@ def create_prediction_visualization(result):
         )
         return fig
 
+# --------------- 段落级别检测与屏蔽功能 ---------------
+def mask_sensitive_words_in_sentence(sentence: str, sensitive_words:set):
+    """
+    将句子中的敏感词用 '*' 屏蔽（按字符长度掩盖），保持原句子其他部分不变。
+    匹配为单词边界，大小写不敏感。
+    """
+    try:
+        def repl(match):
+            word = match.group(0)
+            return '*' * len(word)
+
+        # 构建正则：\b(word1|word2|...)\b，注意转义
+        if not sensitive_words:
+            return sentence
+        escaped = [re.escape(w) for w in sensitive_words if w.strip()]
+        if not escaped:
+            return sentence
+        pattern = r'(?i)\b(' + '|'.join(escaped) + r')\b'
+        masked = re.sub(pattern, repl, sentence)
+        return masked
+    except Exception as e:
+        print(f"屏蔽敏感词失败: {e}")
+        return sentence
+
+
+def analyze_paragraph(paragraph: str):
+    """
+    将段落按句子拆分，对每个句子调用 predict_from_sentence 进行检测；
+    若句子被判为 hate/offensive，则对该句中的敏感词进行屏蔽。
+    返回逐句结果（数组）和屏蔽后的整段文本（原句顺序，替换为屏蔽句）。
+    """
+    if not paragraph or not paragraph.strip():
+        return {"error": "请输入有效的段落文本"}, ""
+
+    # 简单句子分割：按句末标点或换行分割，保留原句末标点
+    # 兼容中英文标点
+    sentence_boundaries = re.split(r'(?<=[。！？.!?])\s+|\n+', paragraph.strip())
+    sentences = [s.strip() for s in sentence_boundaries if s.strip()]
+
+    # 加载外部词典作为敏感词集合（hate + negative + positive 可视需求而定）
+    hate_words, neg_words, pos_words, _ = load_external_dictionaries()
+    # 合并为敏感词集合（以 hate + neg 为主）
+    sensitive_words = set(hate_words) | set(neg_words)
+
+    results = []
+    masked_sentences = []
+
+    for sent in sentences:
+        # 使用已有的单句预测逻辑
+        pred = predict_from_sentence(sent)
+        # 可能返回 error 或正常结构
+        label = pred.get("prediction") if isinstance(pred, dict) and "prediction" in pred else None
+
+        is_offensive = False
+        if isinstance(label, str):
+            # 支持中英文标签识别
+            if ("hate" in label.lower() or "offensive" in label.lower() or "offend" in label.lower() or
+                "仇恨" in label or "冒犯" in label):
+                is_offensive = True
+
+        # 若判为攻击性句子，则屏蔽敏感词
+        if is_offensive:
+            masked = mask_sensitive_words_in_sentence(sent, sensitive_words)
+        else:
+            masked = sent
+
+        results.append({
+            "sentence": sent,
+            "prediction": label if label is not None else pred,
+            "is_offensive": bool(is_offensive)
+        })
+        masked_sentences.append(masked)
+
+    # 重新拼接为段落（每句保持原分隔符为单空格）
+    masked_paragraph = " ".join(masked_sentences)
+
+    return results, masked_paragraph
+
 # 直接对数值特征向量进行预测
 # 绕过文本处理，直接使用模型训练时的 数值特征向量 做预测
 # 适合 批量预测 或 调试模型，比如你已经有特征文件，不需要再从文本生成特征
@@ -868,7 +946,7 @@ class MLPNet(torch.nn.Module):
 with gr.Blocks() as demo:
     gr.Markdown("# 仇恨言论检测系统")
 
-    with gr.Tab("输入言论以进行检测... "):
+    with gr.Tab(" 单句仇恨言论检测 "):
         gr.Markdown("### 直接输入句子/短语进行检测，输出结果为三类：")
         gr.Markdown("### 仇恨言论(hate speech)，冒犯言论(offensive speech)，正常言论(normal speech)")
 
@@ -895,7 +973,19 @@ with gr.Blocks() as demo:
             inputs=sentence_output,
             outputs=visualization_output
         )
+    # 新增：段落级别扫描与屏蔽（不影响现有界面）
+    with gr.Tab("段落扫描与屏蔽"):
+        gr.Markdown("### 对一段话进行检测，识别各个语句是否为攻击性语句，如果检测到攻击性语句，则对含有敏感词的语句进行屏蔽")
+        paragraph_input = gr.Textbox(lines=6, placeholder="在此粘贴或输入多句文本...", label="段落输入")
+        scan_btn = gr.Button("🔎 扫描并屏蔽敏感句子")
+        paragraph_result = gr.JSON(label="逐句检测结果")
+        masked_output = gr.Textbox(label="屏蔽后文本", lines=6)
 
+        scan_btn.click(
+            fn=analyze_paragraph,
+            inputs=paragraph_input,
+            outputs=[paragraph_result, masked_output]
+        )
     gr.Markdown("""
     ### 使用说明:
 
@@ -915,6 +1005,7 @@ with gr.Blocks() as demo:
       - 温和表达："I love this beautiful day" (100%)
 
     #### **🎯触发规则**
+    - 可检测抽象型仇恨词语，例如a$$hole
     - **🔴 仇恨言论(hate speech)**:
       - 强烈种族脏词: nigger, nigga, kike, coon, chink, gook, spic
       - 仇恨动词 + 量化词: kill/hate/exterminate + all/every/each

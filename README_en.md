@@ -14,7 +14,7 @@
 
 <!-- Badges -->
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Release](https://img.shields.io/badge/Release-v6.1.3-blue.svg)](https://github.com/ICT-classmateliu/Hate_Speech_Detection-Group7/releases)
+[![Release](https://img.shields.io/badge/Release-v6.2.3-blue.svg)](https://github.com/ICT-classmateliu/Hate_Speech_Detection-Group7/releases)
 <!-- MIT License
 Permissions: free to use, modify, redistribute, and commercial use.
 Requirements: preserve original author copyright and license text.
