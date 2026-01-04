@@ -1,31 +1,32 @@
 import json
 import pandas as pd
-# Load the file
+
+# 把「每条 tweet 的依存句法分析结果」转换成 可用于机器学习的数值特征向量（dependency count features），并保存为 CSV
+# 读取依存分析结果和 tweet 数据
 dependency_dict = json.loads(open("dependency_dict.json").read())
 data=pd.read_csv('cleaned_tweets.csv',encoding = 'ISO-8859-1')
 
-#find all dependency types found in our dataset, stored in set to ensure no repeats (all unique types)
+# 收集「所有出现过的依存关系类型」确定 特征空间维度
 dependency_types=set()
 for key, values in dependency_dict.items():
     for v in list(values):
         dependency_types.add(list(v)[0])
 
-#initialize columns (of all zeros) in dataframe for each of the dependency types
+# 为每一种依存关系创建一列（全 0）
 for type in dependency_types:
     data[str(type)] = 0
 
-#print(data[0,])
-
+# 统计每条 tweet 中的依存关系数量
+# 最终得到的是一个 Bag-of-Dependencies（依存关系词袋）
 for index, row in data.iterrows():
     tweet = str(row['tweet'])
     clean_tweet = str(row['clean_tweet'])
     idx = str(row['index'])
     dependeny_vec = dependency_dict[idx]
-    #for each dependency type that tweet contains, add one to that dependecy column
     for dependency in dependeny_vec:
         data.loc[index, str(dependency[0])] += 1
 
-
+# 给所有列加前缀 & 保存
 data = data.add_prefix('dependecy:')
 data.columns.values
 

@@ -1,4 +1,3 @@
-
 import math
 import nltk
 import string
@@ -12,7 +11,11 @@ import numpy as np
 import nltk
 from sklearn import cross_validation
 
-# hate database
+# 使用 三个人工词典：
+# 仇恨词词典（hatebase）
+# 消极词词典（negative words）
+# 积极词词典（positive words）
+
 dict1=pd.read_csv('hatebase_dict.csv', encoding = 'ISO-8859-1')
 dict11 = dict1['dic']
 dic1 = []
@@ -20,8 +23,6 @@ for row in dict11:
     row = row.strip("',")
     dic1.append(row)
     
-#print(dic)
-# negative words lexicon
 dict2=pd.read_csv('negative word.csv', encoding = 'ISO-8859-1')
 dict21 = dict2['dic']
 dic2 = []
@@ -29,7 +30,6 @@ for row in dict21:
     row = row.strip("',")
     dic2.append(row)
     
-# postive word lexicon
 dict3=pd.read_csv('Postive words.csv', encoding = 'ISO-8859-1')
 dict31 = dict3['dic']
 dic3 = []

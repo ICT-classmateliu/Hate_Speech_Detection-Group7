@@ -12,7 +12,6 @@ import csv
 data=pd.read_csv('labeled_data.csv',encoding = 'utf8')
 tweet = data['tweet']
 
-# dictionary into a list
 dict=pd.read_csv('hatebase_dict.csv', encoding = 'ISO-8859-1')
 dict2 = dict['dic']
 dic = []
@@ -21,8 +20,6 @@ for row in dict2:
     dic.append(row)
 print(dic)
 
-
-# Regular expression
 def preprocess(text):
     text = text.strip().strip('"')
     text = re.sub(r'[^A-Za-z0-9(),!?\.\'\`]', ' ', text)
@@ -39,10 +36,8 @@ def preprocess(text):
     text = re.sub(r"\(", " \( ", text)
     text = re.sub(r"\)", " \) ", text)
     text = re.sub(r"\?", " \? ", text)
-    #text = re.sub(r"\S{2,}", " ", text)
     return text.strip().lower()
 
-# calculate term frequency
 def phrase_frequency(text):
     text = preprocess(text)
     tokens = nltk.word_tokenize(text)
@@ -71,7 +66,6 @@ def term_frequency(text):
     term_freqs = {}
     for token in tokens:
         if not token.isalnum():
-            # filter out tokens that are not-alphanumeric, eg punctuation
             continue
         if token in term_freqs:
             term_freqs[token] += 1 / len(text)
@@ -88,15 +82,10 @@ def term_fre(text):
             continue
     return term_freqs
 
-
-
 docs = {}
 for no, rows in enumerate(tweet):
     docs[no] = term_fre(rows)
-#print (docs[2])
 
-
-# calculated document frequency
 def document_frequency(docs):
     freqs = {}
     list1 = []
@@ -109,24 +98,18 @@ def document_frequency(docs):
         else:
             freqs[term] = 1 / len(docs)
     return freqs
-#print (document_frequency(docs))
 
-# calculate tfidf score
 def tfidf_score(docs):
     doc_freqs = document_frequency(docs)
     for i in range (len(docs)):
         for term in docs[i].keys():
             docs[i][term] = docs[i][term] * math.log(len(docs)/doc_freqs[term], 2)
     return docs
-#print (tfidf_score(docs)[2])
-
 
 score = tfidf_score(docs)
 tot_score = {}
 for i in range(len(score)):
     tot_score[i] = sum(score[i].values())
-#print (tot_score)
-
 
 output = [['ID','score']]
 for i in range(len(list(tot_score))):

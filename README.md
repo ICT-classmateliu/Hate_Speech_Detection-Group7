@@ -14,7 +14,7 @@
 
 <!-- 这里对应小徽章部分（使用不依赖仓库可见性的静态徽章以避免 "repo not found"） -->
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Release](https://img.shields.io/badge/Release-v6.1.2-blue.svg)](https://github.com/ICT-classmateliu/Hate_Speech_Detection-Group7/releases)
+[![Release](https://img.shields.io/badge/Release-v6.1.3-blue.svg)](https://github.com/ICT-classmateliu/Hate_Speech_Detection-Group7/releases)
 <!-- MIT License
 别人：可以自由使用、修改、再发布、商用。
 要求：保留原作者版权声明和许可证文本。
@@ -33,18 +33,17 @@
 <br/>__注意:__ 
 
 ## 相关功能 ##
-运行主文件存放在 main 文件夹中，文件名为 `hate_speech_detection_gpu` ，训练使用GPU（PyTorch，XGBoost）以及CPU（sklearn），总训练时长约为 20-30min，内部模型如下表：
+运行主文件存放在 main 文件夹中，文件名为  `hate_speech_detection_gpu` ， `app_gradio` ， `train_final_model` 。`train_final_model` 使用 PyTorch MLP ，GPU训练，并加入相似度匹配、类别权重等；`app_gradio` 使用 gradio 实现可视化，输入句子提取特征以提升精确度，导入 artifacts 以复现模型 ； `hate_speech_detection_gpu` 训练使用 GPU（PyTorch，XGBoost）以及CPU（sklearn），总训练时长约为 20-30min，内部模型如下表：
 
-| 模型 | 输入特征 | 框架/库 | GPU 加速 | 用途 | 训练方式 | 评价指标 |
+| 模型 | 输入特征 | 框架/库 | 使用GPU | 用途 | 训练方式 | 评价指标 |
 | --- | --- | ---: | ---: | --- | --- | --- |
-| 基准模型 (Baseline MLP) | 加权 TF-IDF (`weighted_TFIDF_scores`) | PyTorch | 可选（小模型不必要） | 作为最简单的参考模型 | 5 折交叉验证 | F1-score, Accuracy, Precision (macro), Recall (macro) |
-| Gradient Boosting (GB) | 加权 TF-IDF | scikit-learn | CPU | 参考模型 | 3 折交叉验证 | F1-score, Accuracy, Precision (micro), Recall (micro) |
-| Random Forest (RF) | 完整特征 | scikit-learn | CPU | 参考模型 | 3 折交叉验证 | F1-score, Accuracy, Precision (micro), Recall (micro) |
-| XGBoost | 完整特征 | XGBoost | 可选 GPU | 参考模型 / 集成 | 3 或 5 折交叉验证（视是否使用 GPU） | F1-score, Accuracy, Precision (micro), Recall (micro) |
-| PyTorch MLP (完整特征) | 完整特征 | PyTorch | GPU | 主要模型 | 最终训练 | F1-score, Accuracy, Precision (micro), Recall (micro), ROC/AUC |
- 
-| Voting 集成 | 完整特征 | scikit-learn | CPU | 集成学习 | MLP + RF + XGBoost（soft voting） | F1-score, Accuracy, Precision, Recall |
-| Stacking 集成 | 完整特征 | mlxtend | CPU | 集成学习 | MLP + RF + XGBoost，LogisticRegression 作为 meta-classifier | F1-score, Accuracy, Precision, Recall |
+| 基准模型 (Baseline MLP) | 加权 TF-IDF | PyTorch | 是 | 作为最简单的参考模型 | 5 折交叉验证 | F1-score, Accuracy, Precision (macro), Recall (macro) |
+| Gradient Boosting (GB) | 加权 TF-IDF | scikit-learn | 否，CPU | 参考模型 | 3 折交叉验证 | F1-score, Accuracy, Precision (micro), Recall (micro) |
+| Random Forest (RF) | 完整特征 | scikit-learn | 否，CPU | 参考模型 | 3 折交叉验证 | F1-score, Accuracy, Precision (micro), Recall (micro) |
+| XGBoost | 完整特征 | XGBoost | 是 | 集成 | 5 折交叉验证 | F1-score, Accuracy, Precision (micro), Recall (micro) |
+| PyTorch MLP | 完整特征 | PyTorch | 是 | 主模型 | 完整可视化训练 | F1-score, Accuracy, Precision (micro), Recall (micro), ROC/AUC |
+| Voting 集成 | 完整特征 | scikit-learn | 否，CPU | 集成学习 | MLP + RF + XGBoost（soft voting） | F1-score, Accuracy, Precision, Recall |
+| Stacking 集成 | 完整特征 | mlxtend | 否，CPU | 集成学习 | MLP + RF + XGBoost，LogisticRegression 作为 meta-classifier | F1-score, Accuracy, Precision, Recall |
 
 ## 使用说明 ##
 在运行此项目之前，需要安装以下库以及软件包:
@@ -95,13 +94,13 @@
  - 数据集中包含了17430条标注好的句子，覆盖种族，性别，地域等主题。其中，label 0 代表安全，label 1 代表仇恨言论
 
 ## 特征数据集生成脚本 ##
-项目中使用四种特征空间，包括 TF-IDF（加权得分和矩阵）、N-gram（字符级和词级）、类型依存关系和情感得分。每种特征空间都需要使用不同的文本语料库预处理脚本
-- `clean_tweets.py` 
-- `stanford_nlp.py` 
-- `dependency_features.py` 
-- `ngram_features.py` 
-- `sentiment_scores.py` 
-- `tf-idf.py` 
+本项目按照“文本预处理 → 句法分析 → 特征抽取”的流程构建模型训练所需的多类特征
+ -  `clean_tweets.py` 对原始标注数据 labeled_data.csv 中的推文进行清洗与规范化处理，生成包含 clean_tweet 的基础数据集 cleaned_tweets.csv
+ -  `stanford_nlp.py` 调用 Stanford CoreNLP 对每条推文执行依存句法解析，并将解析结果按推文 index 保存为 dependency_dict.json
+ -  `dependency_features.py` 在此基础上统计各类依存关系的出现次数，生成依存句法特征表 dependency_features.csv
+ - `ngram_features.py` 基于清洗后的文本提取词级与字符级 n-gram 特征以及词级 TF-IDF 特征，分别输出 word_bigram_features.csv、char_bigram_features.csv 和 tfidf_features.csv
+ - `sentiment_scores.py` 利用仇恨词典与情感词典计算每条推文中仇恨词、消极词和积极词的命中次数及其归一化比例，生成情感相关数值特征 sentiment_scores.csv
+ - `tf-idf.py` 进一步基于仇恨词典计算仇恨词 TF-IDF 累加得分，用于衡量推文的仇恨强度。上述脚本共同构成完整的特征工程流程，为后续模型训练与评估提供统一、可复现的输入特征
 
 ## 引用来源 ##
 - 实现方案参考及README编写 https://github.com/aman-saha/hate-speech-detection/tree/master

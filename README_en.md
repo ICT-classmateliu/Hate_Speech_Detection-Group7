@@ -14,7 +14,7 @@
 
 <!-- Badges -->
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Release](https://img.shields.io/badge/Release-v6.1.2-blue.svg)](https://github.com/ICT-classmateliu/Hate_Speech_Detection-Group7/releases)
+[![Release](https://img.shields.io/badge/Release-v6.1.3-blue.svg)](https://github.com/ICT-classmateliu/Hate_Speech_Detection-Group7/releases)
 <!-- MIT License
 Permissions: free to use, modify, redistribute, and commercial use.
 Requirements: preserve original author copyright and license text.
@@ -33,18 +33,17 @@ This project is a course assignment for "Natural Language Processing". Project r
 <br/>__Note:__
 
 ## Features ##
-The main script is located in the `main` folder and named `hate_speech_detection_gpu`. Training uses GPU (PyTorch, XGBoost) and CPU (sklearn); total training time is about 20–30 minutes. The internal models are summarized in the table below:
+The main scripts are located in the `main` folder and named `hate_speech_detection_gpu`, `app_gradio`, and `train_final_model`. `train_final_model` uses PyTorch MLP with GPU training and includes similarity matching and class weights; `app_gradio` implements visualization using Gradio, extracts features from input sentences to improve accuracy, and imports artifacts to reproduce the model; `hate_speech_detection_gpu` uses GPU (PyTorch, XGBoost) and CPU (sklearn) for training, with total training time of about 20-30 minutes. The internal models are summarized in the table below:
 
 | Model | Input features | Framework/Library | GPU Acceleration | Purpose | Training | Evaluation metrics |
 | --- | --- | ---: | ---: | --- | --- | --- |
-| Baseline MLP | Weighted TF-IDF (`weighted_TFIDF_scores`) | PyTorch | Optional (not required for small models) | Simple reference baseline | 5-fold cross-validation | F1-score, Accuracy, Precision (macro), Recall (macro) |
-| Gradient Boosting (GB) | Weighted TF-IDF | scikit-learn | CPU | Reference model | 3-fold cross-validation | F1-score, Accuracy, Precision (micro), Recall (micro) |
-| Random Forest (RF) | Full features | scikit-learn | CPU | Reference model | 3-fold cross-validation | F1-score, Accuracy, Precision (micro), Recall (micro) |
-| XGBoost | Full features | XGBoost | Optional GPU | Reference model / ensemble | 3 or 5-fold cross-validation (depends on GPU usage) | F1-score, Accuracy, Precision (micro), Recall (micro) |
-| PyTorch MLP (full features) | Full features | PyTorch | GPU | Main model | final training | F1-score, Accuracy, Precision (micro), Recall (micro), ROC/AUC |
- 
-| Voting ensemble | Full features | scikit-learn | CPU | Ensemble learning | MLP + RF + XGBoost (soft voting) | F1-score, Accuracy, Precision, Recall |
-| Stacking ensemble | Full features | mlxtend | CPU | Ensemble learning | MLP + RF + XGBoost, LogisticRegression as meta-classifier | F1-score, Accuracy, Precision, Recall |
+| Baseline MLP | Weighted TF-IDF | PyTorch | Yes | Simple reference model | 5-fold cross-validation | F1-score, Accuracy, Precision (macro), Recall (macro) |
+| Gradient Boosting (GB) | Weighted TF-IDF | scikit-learn | No, CPU | Reference model | 3-fold cross-validation | F1-score, Accuracy, Precision (micro), Recall (micro) |
+| Random Forest (RF) | Full features | scikit-learn | No, CPU | Reference model | 3-fold cross-validation | F1-score, Accuracy, Precision (micro), Recall (micro) |
+| XGBoost | Full features | XGBoost | Yes | Ensemble | 5-fold cross-validation | F1-score, Accuracy, Precision (micro), Recall (micro) |
+| PyTorch MLP | Full features | PyTorch | Yes | Main model | Complete visualized training | F1-score, Accuracy, Precision (micro), Recall (micro), ROC/AUC |
+| Voting ensemble | Full features | scikit-learn | No, CPU | Ensemble learning | MLP + RF + XGBoost (soft voting) | F1-score, Accuracy, Precision, Recall |
+| Stacking ensemble | Full features | mlxtend | No, CPU | Ensemble learning | MLP + RF + XGBoost, LogisticRegression as meta-classifier | F1-score, Accuracy, Precision, Recall |
 
 ## Usage ##
 Before running this project, install the following libraries and packages:
@@ -95,13 +94,13 @@ Chinese datasets are stored in the `initial_dataset_cn` folder. The dataset orig
  - The dataset contains 17,430 labeled sentences covering topics such as race, gender, and region. Label 0 indicates safe, label 1 indicates hate speech.
 
 ## Feature dataset generation scripts ##
-The project uses four feature spaces: TF-IDF (weighted score and matrix), N-gram (character-level and word-level), typed dependency, and sentiment scores. Each feature space requires different preprocessing scripts as follows:
-- `clean_tweets.py` 
-- `stanford_nlp.py`
-- `dependency_features.py` 
-- `ngram_features.py` 
-- `sentiment_scores.py` 
-- `tf-idf.py` 
+The project follows a "text preprocessing → syntactic analysis → feature extraction" process to construct multiple types of features required for model training.
+- `clean_tweets.py` cleans and normalizes tweets from the original labeled data labeled_data.csv, generating a base dataset cleaned_tweets.csv containing clean_tweet
+- `stanford_nlp.py` calls Stanford CoreNLP to perform dependency parsing on each tweet and saves the parsing results by tweet index as dependency_dict.json
+- `dependency_features.py` further counts the occurrences of various dependency relations, generating a dependency syntactic feature table dependency_features.csv
+- `ngram_features.py` extracts word-level and character-level n-gram features as well as word-level TF-IDF features based on cleaned text, outputting word_bigram_features.csv, char_bigram_features.csv, and tfidf_features.csv respectively
+- `sentiment_scores.py` uses hate dictionaries and sentiment dictionaries to calculate hit counts and normalized ratios of hate words, negative words, and positive words in each tweet, generating sentiment-related numerical features sentiment_scores.csv
+- `tf-idf.py` further calculates cumulative TF-IDF scores of hate words based on hate dictionaries to measure tweet hate intensity. These scripts together form a complete feature engineering process, providing unified and reproducible input features for subsequent model training and evaluation 
 
 ## References ##
 - Implementation and README reference: https://github.com/aman-saha/hate-speech-detection/tree/master
